@@ -1,0 +1,64 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Aug 28 00:27:39 2025
+
+@author: marir
+"""
+
+import pandas as pd
+import numpy as np
+from transformers import AutoTokenizer
+from transformers import AutoModelForSequenceClassification 
+from scipy.special import softmax
+from deep_translator import GoogleTranslator
+
+
+# File okuma 
+df = pd.read_csv('C:\\Users\\marir\\OneDrive\\Desktop\\FloProjesi\\Web Scraping\\FloKadin.csv', encoding="latin5")
+# Değerlendirmeleri ürün numarasına göre gruplamak ve lisede koymak
+prodectNo_comments = df.groupby('Ürün numarasi')['Yorum text'].apply(list).reset_index()
+#print(prodectNo_comments)
+
+# MultiLanguage model yükleme
+MODEL = F"cardiffnlp/twitter-roberta-base-sentiment-latest"
+tokenizer = AutoTokenizer.from_pretrained(MODEL)
+model = AutoModelForSequenceClassification.from_pretrained(MODEL)
+
+
+def analyze_product(product_no):
+    # Ürün numarasını DataFrame’den bul
+    row = prodectNo_comments[prodectNo_comments['Ürün numarasi'] == product_no]
+
+    # öncelikle DataFrame'i string listeye dönüştürme sonra modeli kullanma
+    comments = row['Yorum text'].values[0]
+    labels = ["negative", "neutral", "positive"]
+    all_scores = []
+    for comment in comments:
+        # 1. Türkçe yorum -> İngilizce çeviri
+        translated = GoogleTranslator(source='tr', target='en').translate(comment)
+        # RoBerta modeli kullanmak
+        encoded = tokenizer(translated, padding=True, truncation=True, max_length=512, return_tensors='pt')
+        # Model çıktısı
+        output = model(**encoded)
+        # Softmax ile skorları alındı
+        scores = softmax(output.logits.detach().numpy()[0])
+        all_scores.append(scores)
+     
+    # Ortalama skorları al
+    avg_scores = np.mean(all_scores, axis=0)    
+    score_dict = {labels[j]: float(avg_scores[j]) for j in range(len(labels))}
+    
+    # En yüksek skoru bul
+    sentiment = max(score_dict, key=score_dict.get)
+    print(f" Ürün {product_no} için sonuç: {sentiment.upper()} → {score_dict}")
+    
+# 5. Kullanıcıdan ürün numarası al
+while True:
+    product_input  = input("Ürün numarası gir (çıkmak için 'q'): ")
+    if product_input .lower() == "q":
+        break
+    
+    product_no = int(product_input)
+    print(analyze_product(product_no))
+    
+    
