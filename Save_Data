@@ -13,10 +13,10 @@ db = None
 try:
     db = psycopg2.connect(
             host = "localhost",
-            database = "veri",
+            database = "...",
             user = "postgres",
-            password = "marya",
-            port = 5432      
+            password = "....",
+            port = ...     
        )
     cur = db.cursor()  
     
