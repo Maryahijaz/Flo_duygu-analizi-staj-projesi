@@ -1,0 +1,50 @@
+import pandas as pd
+import psycopg2
+
+# File okuma 
+df = pd.read_csv('C:\\Users\\marir\\OneDrive\\Desktop\\FloProjesi\\Web Scraping\\FloKadin.csv', encoding="latin5")
+# Değerlendirmeleri ürün numarasına göre gruplamak ve lisede koymak
+prodectNo_comments = df.groupby('Ürün numarasi')['Yorum text'].apply(list).reset_index()
+
+# Database'e bağlanmak 
+# Database veri kaybı olmasın diye kullandim
+cur = None
+db = None
+try:
+    db = psycopg2.connect(
+            host = "localhost",
+            database = "veri",
+            user = "postgres",
+            password = "marya",
+            port = 5432      
+       )
+    cur = db.cursor()  
+    
+    # Table oluşturmak
+    create_script = ''' CREATE TABLE IF NOT EXISTS product(
+                           product_number INT PRIMARY KEY,
+                           comments TEXT[]                     
+    ) '''
+    cur.execute(create_script)
+    # prodectNo_comments insert etmek 
+    for _, row in prodectNo_comments.iterrows():
+        cur.execute(
+            """
+            INSERT INTO product (product_number, comments)
+            VALUES (%s, %s)
+            ON CONFLICT (product_number)
+            DO UPDATE SET comments = product.comments || EXCLUDED.comments
+            """,
+            (int(row['Ürün numarasi']), row['Yorum text'])
+        )
+    db.commit()
+
+
+except Exception as error:
+    print(error)    
+finally:
+    if cur is not None:
+        cur.close()
+    if db is not None:
+        db.close()
+    
