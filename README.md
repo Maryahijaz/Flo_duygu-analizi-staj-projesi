@@ -10,11 +10,11 @@ Bu proje, FLO müşterileri tarafından e-ticaret platformu üzerinden bırakıl
 
 Python 3.x
 
-TextBlob (Doğal Dil İşleme kütüphanesi)
+RoBerta (Doğal Dil İşleme kütüphanesi)
 
 pandas (veri işleme)
 
-matplotlib / seaborn (grafiksel analiz)
+Google deep-translator
 
 CSV dosyası üzerinden örnek yorum verisi
 
@@ -24,9 +24,9 @@ FLO ürünlerine benzer şekilde yazılmış örnek yorumlar CSV formatında haz
 
 Python ile bu yorumlar okunarak işlenmiştir.
 
-TextBlob kütüphanesiyle yorumların duygu analizleri (olumlu/olumsuz/nötr) yapılmıştır.
+RoBerta kütüphanesiyle yorumların duygu analizleri (olumlu/olumsuz/nötr) yapılmıştır.
 
-Sonuçlar grafiksel olarak görselleştirilmiş ve sınıflandırılmıştır.
+Sonuçlar sınıflandırılmıştır.
 
 5. Kazanımlar:
 
@@ -40,6 +40,3 @@ Müşteri deneyimiyle ilgili içgörü üretme becerisi
 
 FLO’nun gerçek veri yapısına uygun büyük veri analizi
 
-Streamlit ile web arayüzlü duygu analiz platformu
-
-scikit-learn ile eğitimli bir makine öğrenimi modeli
