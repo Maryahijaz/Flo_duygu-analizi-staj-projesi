@@ -26,8 +26,9 @@ def analyze_product(product_no):
     comments = row['Yorum text'].values[0]
     labels = ["negative", "neutral", "positive"]
     all_scores = []
+    yorumlar_list = []
     for comment in comments:
-        # 1. Türkçe yorum -> İngilizce çeviri
+        # Türkçe yorum -> İngilizce çeviri
         translated = GoogleTranslator(source='tr', target='en').translate(comment)
         # RoBerta modeli kullanmak
         encoded = tokenizer(translated, padding=True, truncation=True, max_length=512, return_tensors='pt')
@@ -36,22 +37,42 @@ def analyze_product(product_no):
         # Softmax ile skorları alındı
         scores = softmax(output.logits.detach().numpy()[0])
         all_scores.append(scores)
-     
+        
+        yorumlar_list.append({
+           "yorum": comment,
+           "negative": float(scores[0]),
+           "neutral": float(scores[1]),
+           "positive": float(scores[2])
+       })
+        
     # Ortalama skorları al
     avg_scores = np.mean(all_scores, axis=0)    
     score_dict = {labels[j]: float(avg_scores[j]) for j in range(len(labels))}
     
     # En yüksek skoru bul
     sentiment = max(score_dict, key=score_dict.get)
-    print(f" Ürün {product_no} için sonuç: {sentiment.upper()} → {score_dict}")
+    return {
+        "urun_no": product_no,
+        "ortalama_skor": score_dict,
+        "sentiment": sentiment.upper(),
+        "yorumlar": yorumlar_list
+    }
     
-# 5. Kullanıcıdan ürün numarası al
+# Kullanıcıdan ürün numarası al
 while True:
     product_input  = input("Ürün numarası gir (çıkmak için 'q'): ")
     if product_input .lower() == "q":
         break
-    
+    # Girilen input str olarak algılandığı için int çevirildi
     product_no = int(product_input)
-    print(analyze_product(product_no))
+    result = analyze_product(product_no)
+    print(f"Ürün {result['urun_no']} için sonuç: {result['sentiment']} → {result['ortalama_skor']}")
+
     
-    
+    # Negatif yorumları gösterme seçeneği
+    show_neg = input("Negatif yorumları görmek ister misiniz? (e/h): ")
+    if show_neg.lower() == 'e':
+         print("\nNegatif yorumlar:")
+         for c in result['yorumlar']:
+               if c['negative'] > max(c['neutral'], c['positive']):
+                   print(f"- {c['yorum']}")
