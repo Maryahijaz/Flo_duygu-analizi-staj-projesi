@@ -2,7 +2,7 @@ import pandas as pd
 import psycopg2
 
 # File okuma 
-df = pd.read_csv('C:\\Users\\marir\\OneDrive\\Desktop\\FloProjesi\\Web Scraping\\FloKadin.csv', encoding="latin5")
+df = pd.read_csv('...\\FloProjesi\\Web Scraping\\FloKadin.csv', encoding="latin5")
 # Değerlendirmeleri ürün numarasına göre gruplamak ve lisede koymak
 prodectNo_comments = df.groupby('Ürün numarasi')['Yorum text'].apply(list).reset_index()
 
